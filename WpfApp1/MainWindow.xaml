@@ -1,0 +1,73 @@
+﻿<Window x:Name="HostingWfInWpf" x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="474" Width="1392">
+
+    <Grid x:Name="mainG" RenderTransformOrigin="1,1">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="676*"/>
+            <ColumnDefinition Width="Auto" MinWidth="31"/>
+            <ColumnDefinition Width="685*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid x:Name="GrChart" HorizontalAlignment="Left" Height="351" VerticalAlignment="Top" Width="692" RenderTransformOrigin="0.5,0.497" Grid.Column="1" Margin="24,10,0,0" MinWidth="500" MinHeight="500" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="135*"/>
+                <RowDefinition Height="94*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="337*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="339*"/>
+            </Grid.ColumnDefinitions>
+        </Grid>
+
+        <GridSplitter HorizontalAlignment="Center" Width="22" Grid.Column="1" RenderTransformOrigin="0.5,0.5">
+            <GridSplitter.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="0.188"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </GridSplitter.RenderTransform>
+        </GridSplitter>
+
+        <DataGrid x:Name="Dgrid" AutoGenerateColumns="False" d:ItemsSource="{d:SampleData ItemCount=5}" FontSize="36" FontFamily="Arial Narrow" SelectionUnit="Cell" Margin="1,0,0,0" Grid.ColumnSpan="1" MinRowHeight="40" MinColumnWidth="200">
+            <DataGrid.Columns>
+                <DataGridTextColumn  Binding="{Binding name, UpdateSourceTrigger=PropertyChanged}" Width="250" Header="Имя" />
+                <DataGridTextColumn  Binding="{Binding col, UpdateSourceTrigger=PropertyChanged}" Width="200" Header="Индикатор">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="Error">
+                                    <Setter Property="Background" Value="Red"/>
+                                </Trigger>
+                                <Trigger Property="Text" Value="DataError">
+                                    <Setter Property="Background" Value="Orange"/>
+                                </Trigger>
+                                <Trigger Property="Text" Value="Ok">
+                                    <Setter Property="Background" Value="Green"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Инф. по Ошибке" Width="500">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Exep}" ToolTip="{Binding Exep}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+
+    </Grid>
+</Window>
