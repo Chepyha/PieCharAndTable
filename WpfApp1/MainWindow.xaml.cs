@@ -41,21 +41,6 @@ namespace WpfApp1
         public HttpClient client = new HttpClient();
         public List<LogIn> Logs= new List<LogIn>();
 
-        public class LogIn
-        {
-            public string name { get; set; }
-            public string Log { get; set; }
-            public string pass { get; set; }
-            public LogIn(string name="", string Log = "", string pass = "")
-            {
-                this.name = name;
-                this.Log = Log;
-                this.pass   = pass;
-            }
-        }
-
-
-
         public MainWindow()
         {
             //маштабирование по всему экрану
@@ -74,7 +59,9 @@ namespace WpfApp1
             address.Add("https://localhost:7204/pe");
             address.Add("");
             address.Add("");
+
             Logs.Add(new LogIn("https://localhost:7204/login", "1", "1"));
+
             rep = new ExName[address.Count];
             Trep = new Table[address.Count];
             //заполнение данных и заполнение листа
@@ -85,8 +72,19 @@ namespace WpfApp1
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
             timer.Start();
+        }
 
-
+        public class LogIn
+        {
+            public string name { get; set; }
+            public string Log { get; set; }
+            public string pass { get; set; }
+            public LogIn(string name = "", string Log = "", string pass = "")
+            {
+                this.name = name;
+                this.Log = Log;
+                this.pass = pass;
+            }
         }
 
         //вспомогательный класс для вывода в DataGrid
@@ -172,13 +170,6 @@ namespace WpfApp1
         void timer_Tick(object sender, EventArgs e)
         {
             ListEx.Clear();
-            //ImageBrush bra = new ImageBrush();
-            //Image im = new Image();
-            //BitmapImage bitmap = new BitmapImage();
-            //bitmap.BeginInit();
-            //bitmap.UriSource=new Uri(@"C:\Users\Админ\Desktop\practic\WpfApp1\WpfApp1\Properties\2590a1a6759841581e6e1ed7fc91376d.jpg");
-            //bitmap.EndInit();
-            //im.Source = bitmap;
 
             for (int i = 0; i < address.Count; i++)
             {

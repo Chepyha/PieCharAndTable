@@ -13,14 +13,16 @@
 
     <Grid x:Name="mainG" RenderTransformOrigin="1,1">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" MinWidth="15"/>
+            <ColumnDefinition MinWidth="15" Width="317*"/>
             <ColumnDefinition Width="Auto" MinWidth="15"/>
-            <ColumnDefinition Width="*" MinWidth="15"/>
+            <ColumnDefinition Width="726*"/>
+            <ColumnDefinition Width="Auto" MinWidth="31" />
+            <ColumnDefinition Width="286*"/>
         </Grid.ColumnDefinitions>
 
         <GridSplitter x:Name="SplitVert" HorizontalAlignment="Center" Width="32" RenderTransformOrigin="0.382,0.509" Grid.Column="1" ResizeDirection="Columns"/>
 
-        <Grid Margin="10,0,0,0">
+        <Grid Margin="10,0,0,0" Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition MinHeight="15" Height="*"/>
                 <RowDefinition Height="Auto" MinHeight="15"/>
@@ -31,61 +33,54 @@
             <WebBrowser Grid.Row="1" Margin="-5,16,0,3" Grid.RowSpan="2"/>
         </Grid>
 
-        <Grid Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition MinHeight="15" Height="222*"/>
-                <RowDefinition Height="Auto" MinHeight="19"/>
-                <RowDefinition MinHeight="15" Height="217*"/>
-            </Grid.RowDefinitions>
+        <DataGrid x:Name="Dgrid" AutoGenerateColumns="False" d:ItemsSource="{d:SampleData ItemCount=5}" FontSize="36" FontFamily="Arial Narrow" SelectionUnit="Cell" MinRowHeight="40" MinColumnWidth="200" Margin="1,0,0,0" Grid.Column="2">
+            <DataGrid.Columns>
+                <DataGridTextColumn  Binding="{Binding Name1, UpdateSourceTrigger=PropertyChanged}" Width="250" Header="Имя" />
+                <DataGridTextColumn  Binding="{Binding ex, UpdateSourceTrigger=PropertyChanged}" Width="200" Header="Индикатор">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="Error">
+                                    <Setter Property="Background" Value="Red"/>
+                                </Trigger>
+                                <Trigger Property="Text" Value="DataError">
+                                    <Setter Property="Background" Value="Orange"/>
+                                </Trigger>
+                                <Trigger Property="Text" Value="Ok">
+                                    <Setter Property="Background" Value="Green"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding fex}" Header="Инф. об ошибке"/>
+                <DataGridTemplateColumn Header="Картинка" Width="128">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid Height="128" Background="{Binding col}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-            <DataGrid x:Name="Dgrid" AutoGenerateColumns="False" d:ItemsSource="{d:SampleData ItemCount=5}" FontSize="36" FontFamily="Arial Narrow" SelectionUnit="Cell" MinRowHeight="40" MinColumnWidth="200" Margin="0,0,0,2">
-                <DataGrid.Columns>
-                    <DataGridTextColumn  Binding="{Binding Name1, UpdateSourceTrigger=PropertyChanged}" Width="250" Header="Имя" />
-                    <DataGridTextColumn  Binding="{Binding ex, UpdateSourceTrigger=PropertyChanged}" Width="200" Header="Индикатор">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="{x:Type TextBlock}">
-                                <Style.Triggers>
-                                    <Trigger Property="Text" Value="Error">
-                                        <Setter Property="Background" Value="Red"/>
-                                    </Trigger>
-                                    <Trigger Property="Text" Value="DataError">
-                                        <Setter Property="Background" Value="Orange"/>
-                                    </Trigger>
-                                    <Trigger Property="Text" Value="Ok">
-                                        <Setter Property="Background" Value="Green"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Binding="{Binding fex}" Header="Инф. об ошибке"/>
-                    <DataGridTemplateColumn Header="Картинка" Width="128">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid Height="128" Background="{Binding col}"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Текст и картинка" Width="128">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid Height="128">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="64"/>
+                                    <RowDefinition Height="64"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Background="{Binding col}" Grid.Row="0"/>
+                                <TextBlock Text="{Binding Name}" ToolTip="{Binding Name}" Grid.Row="1"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Grid x:Name="GrChart" Grid.Column="4"/>
+        <GridSplitter ResizeDirection="Columns" Grid.Column="3" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Stretch"/>
 
-                    <DataGridTemplateColumn Header="Текст и картинка" Width="128">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid Height="128">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="64"/>
-                                        <RowDefinition Height="64"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Background="{Binding col}" Grid.Row="0"/>
-                                    <TextBlock Text="{Binding Name}" ToolTip="{Binding Name}" Grid.Row="1"/>
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
-            <GridSplitter ResizeDirection="Rows" HorizontalAlignment="Stretch" Height="19" VerticalAlignment="Center" Grid.Row="1"/>
-            <Grid x:Name="GrChart" Grid.Row="1" Grid.RowSpan="2" Margin="0,19,0,0"/>
-        </Grid>
 
 
 
