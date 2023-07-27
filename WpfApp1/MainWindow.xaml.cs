@@ -20,9 +20,11 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 using System.Threading;
-
 using System.Runtime.CompilerServices;
 using System.Drawing.Design;
+using System.Runtime.InteropServices;
+
+
 
 namespace WpfApp1
 {
@@ -30,10 +32,11 @@ namespace WpfApp1
     /// Interaction logic for MainWindow.xaml
     /// </summary>
 
-   
 
     public partial class MainWindow : Window
     {
+        [DllImport("shlwapi.dll")]
+        public static extern int ColorHLSToRGB(int H, int L, int S);
         public List<LogIn> Logs = new List<LogIn>();
         public List<ExName> rep = new List<ExName>();
         public List<Table> Trep =   new List<Table>();
@@ -89,15 +92,16 @@ namespace WpfApp1
         public class Table
         {
             public string Name { get; set; }
-            public string ex { set; get; }
-            public string Name1 { set; get; }
-            public string fex { set; get; }
+            public string Status { set; get; }
+            public string PlateName { set; get; }
+            public string Text { set; get; }
+            public int Blink { set; get; }
             public ImageBrush main { set; get; } = new ImageBrush();
-            public int IfExe { get; set; }
+            public string Cat { get; set; }
             public List<DatePie> PieList { set; get; } = null;
-            public int x { set; get; }
-            public int y { set; get; }
-            public Table(string Name = "Null", Image xe=null, string Name1 = "None", int IfExe = 0, string ex = "Error", string fex = "", List<DatePie> PieList = null, int x=0, int y=0)
+            public int Cell_col { set; get; }
+            public int Cell_row { set; get; }
+            public Table(string Name = "Null", Image xe=null, string PlateName = "None", string Cat = "Image", string Status = "Error", string Text = "", List<DatePie> PieList = null, int Cell_col = 0, int Cell_row = 0 ,int Blink=0)
             {
                 this.Name = Name;
                 if (xe != null)
@@ -105,50 +109,56 @@ namespace WpfApp1
                     this.main.ImageSource = xe.Source;
                 }
                 else this.main = new ImageBrush();
-                this.ex = ex;
-                this.Name1 = Name1;
-                this.fex = fex;
+                this.Status = Status;
+                this.PlateName = PlateName;
+                this.Text = Text;
                 if (PieList == null) PieList= new List<DatePie>();
                 this.PieList = PieList;
-                this.IfExe = IfExe;
-                this.x = x;
-                this.y = y;
+                this.Cat = Cat;
+                this.Cell_col = Cell_col;
+                this.Cell_row = Cell_row;
+                this.Blink = Blink;
             }
         }
+
 
         public class DatePie
         {
             public string NameP { get; set; }
             public int Value { get; set; }
-            public DatePie(string NameP = "None", int Value=0)
+            public string HslColor { get; set; }
+            public DatePie(string NameP = "None", int Value=0, string HslColor="hsl(100,100,100)")
             {
                 this.NameP = NameP;
                 this.Value = Value; 
+                this.HslColor = HslColor;
             }
         }
         //Основной класс для заполнения
         public class ExName
         {
             public string Name  { get; set; }
-            public string ex { set; get; }
-            public string Name1 { set; get; }
-            public string fex { set; get; }
+            public string Status { set; get; }
+            public string PlateName { set; get; }
+            public string Text { set; get; }
             public Byte[] Img { set; get; }=null;
-            public int IfExe { get; set; }
+            public string Cat { get; set; }
+            public int Blink { set; get; }
             public List<DatePie> PieList { set; get; } = null;
-            public int x { set; get; }
-            public int y { set; get; }
-            public ExName(string Name = "null", Byte[] img = null, int IfExe = 0, string Name1="None", string ex="Error", string fex="", List<DatePie>PieList=null, int x=0, int y=0)
+            public int Cell_Col { set; get; }
+            public int Cell_Row { set; get; }
+            public ExName(string Name = "null", Byte[] img = null, string Cat = "Image", string PlateName = "None", string Status="Error", string Text = "", List<DatePie>PieList=null, int Cell_Col = 0, int Cell_Row = 0, int Blink=0)
             {
                 this.Name = Name;
                 this.Img = img;
-                this.IfExe = IfExe;
-                this.Name1 = Name1; 
-                this.ex = ex;   
-                this.fex = fex;
+                this.Cat = Cat;
+                this.PlateName = PlateName; 
+                this.Status = Status;   
+                this.Text = Text;
                 this.PieList=PieList;
-                this.x = x;
-                this.y = y;
+                this.Cell_Col = Cell_Col;
+                this.Cell_Row = Cell_Row;
+                this.Blink = Blink;
             }
             public Table CreateTable()
             {
@@ -156,7 +166,7 @@ namespace WpfApp1
 
                 Imp1 = ByteArrToImage(Img);
 
-                return new Table(Name, Imp1,Name1,IfExe,ex,fex,PieList,x,y);
+                return new Table(Name, Imp1, PlateName, Cat, Status, Text, PieList, Cell_Col, Cell_Row);
             }
         }
 
@@ -174,7 +184,7 @@ namespace WpfApp1
             }
             catch (Exception ex)
             {
-                rep.Add(new ExName(ex.Message, null,0));
+                rep.Add(new ExName(ex.Message, null,"Image"));
             }
             return rep;
         }
@@ -262,17 +272,17 @@ namespace WpfApp1
                 {
                     gr[i] = new Grid();
                     Grid_View.Children.Add(gr[i]);
-                    Grid.SetColumn(gr[i], Trep[i].x);
-                    Grid.SetRow(gr[i], Trep[i].y);
+                    Grid.SetColumn(gr[i], Trep[i].Cell_col);
+                    Grid.SetRow(gr[i], Trep[i].Cell_row);
                     gr[i].Height = 128;
                     gr[i].Width = 128;
 
-                    switch (Trep[i].IfExe)
+                    switch (Trep[i].Cat)
                     {
-                        case 0:
+                        case "Image":
                             {
                                 TextBlock block = new TextBlock();
-                                block.Text = Trep[i].ex + "   " + Trep[i].fex;
+                                block.Text = Trep[i].Status + "   " + Trep[i].Text;
                                 block.Background = Trep[i].main;
                                 block.Width = 128;
                                 block.Height = 128;
@@ -280,14 +290,21 @@ namespace WpfApp1
                                 gr[i].UpdateLayout();
                                 break;
                             }
-                        case 1:
+                        case "diagram":
                             {
 
-                                double[] d = new double[Trep[i].PieList.Count];
+                                Test[] d = new Test[Trep[i].PieList.Count];
                                 PieChart ch = new PieChart();
+                                string[] s = new string[4];
+                                double[] n= new double[3];
                                 for (int j = 0; j < Trep[i].PieList.Count; j++)
                                 {
-                                    d[j] = (double)Trep[i].PieList[j].Value;
+                                    d[j]=new Test();
+                                    s = Trep[i].PieList[j].HslColor.Split('(', ',', ')');
+                                    for (int k=1; k < 4; k++) { n[k - 1] = Convert.ToDouble(s[k]); }
+                                    System.Drawing.Color cal = System.Drawing.Color.FromArgb(ColorHLSToRGB((int)n[0], (int)n[1], (int)n[2]));
+                                    d[j].color = Color.FromArgb(255,cal.R,cal.G,cal.B);
+                                    d[j].values = (double)Trep[i].PieList[j].Value;
                                 }
                                 CreateChart(ch, d);
                                 gr[i].Children.Add(ch.ChartBackground);
@@ -301,7 +318,7 @@ namespace WpfApp1
             Grid_View.UpdateLayout();
 
 
-
+           
 
 
 
@@ -358,7 +375,7 @@ namespace WpfApp1
         }
 
 
-        private void CreateChart(PieChart chart, double[] n)
+        private void CreateChart(PieChart chart, Test[] n)
         {
             chart.Clear();
             chart.AddValue(n);
@@ -370,11 +387,13 @@ namespace WpfApp1
             int maksy = 0;
             for (int i=0; i<tabl.Count;i++)
             {
-                if (maksx < tabl[i].x) maksx = tabl[i].x;
-                if (maksy < tabl[i].y) maksy = tabl[i].y;
+                if (maksx < tabl[i].Cell_col) maksx = tabl[i].Cell_col;
+                if (maksy < tabl[i].Cell_row) maksy = tabl[i].Cell_row;
             }
             return new int[] { maksx, maksy};
         }
+
+        
 
         //private int Counti(int i)
         //{

@@ -34,7 +34,7 @@ namespace WpfApp1
             HeightChart = e.NewSize.Height * _factor;
         }
 
-        public void AddValue(double[] value)
+        public void AddValue(Test[] value)
         {
             StoredValues[] listValues = new StoredValues[value.Length];
             listValues = СalculateSectorAngle(value);
@@ -48,7 +48,7 @@ namespace WpfApp1
                 StoredValues sv = listValues[i];
 
                 // Каждый Path-элемент будет хранить данные сектора для последующих вычислений.
-                Path p = CreateSector(sv.Degree, sv.Offset, sv.Value, i);
+                Path p = CreateSector(sv.Degree, sv.Offset, sv.Value, value[i].color);
                 ChartBackground.Children.Add(p);
 
                 // Числовые значения секторов диска.
@@ -86,14 +86,9 @@ namespace WpfApp1
         }
 
 
-        private Path CreateSector(double degree, double offset, double value, int k)
+        private Path CreateSector(double degree, double offset, double value, Color k)
         {
-            Random random = new Random();
-            SolidColorBrush Fl = new SolidColorBrush
-                (Color.FromRgb(Convert.ToByte(random.Next(0,255)), Convert.ToByte(random.Next(0, 255)), Convert.ToByte(random.Next(0, 255)) ));
-
-
-
+            SolidColorBrush Fl = new SolidColorBrush(k);
             Path path = new Path()
             {
                 StrokeThickness = 5,
@@ -158,21 +153,22 @@ namespace WpfApp1
             return sector;
         }
 
-        private StoredValues[] СalculateSectorAngle(double[] value)
+        private StoredValues[] СalculateSectorAngle(Test[] value)
         {
             StoredValues[] listValues= new StoredValues[value.Length];
-            double sum = value.Sum();
+            double sum = 0;
+            foreach(Test test in value) { sum+=test.values; }
             double denominator = sum / 360;
             for (int i = 0; i < value.Count(); i++)
             {
-                double degree = Math.Round(value[i] / denominator, 2);
+                double degree = Math.Round(value[i].values / denominator, 2);
                 double offset = 0;
                 if (i > 0)
                 {
                     offset = listValues[i - 1].Degree + listValues[i - 1].Offset;
                 }
 
-                listValues[i]=new StoredValues(degree, offset, value[i]);
+                listValues[i]=new StoredValues(degree, offset, value[i].values);
             }
 
             return listValues;
