@@ -18,13 +18,13 @@ using System.Net.Http.Json;
 using System.Globalization;
 using System.IO;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
+
 using System.Threading;
 using System.Runtime.CompilerServices;
 using System.Drawing.Design;
 using System.Runtime.InteropServices;
-
-
+using Newtonsoft.Json;
+using System.Diagnostics.Eventing.Reader;
 
 namespace WpfApp1
 {
@@ -44,6 +44,10 @@ namespace WpfApp1
         public HttpClient client = new HttpClient();
         public int Time = 0;
         public int[] countElement= null;
+        public ImageDictionary DicImage=new ImageDictionary();
+
+        public delegate void DrawingDelegate();
+        public delegate List<Table> DataDelegate(List<LogIn> Logs, List<Table> Trep, int Time);
 
         public MainWindow()
         {
@@ -96,7 +100,7 @@ namespace WpfApp1
             public string PlateName { set; get; }
             public string Text { set; get; }
             public int Blink { set; get; }
-            public ImageBrush main { set; get; } = new ImageBrush();
+            public ImageBrush main { set; get; } = new ImageBrush();//string
             public string Cat { get; set; }
             public List<DatePie> PieList { set; get; } = null;
             public int Cell_col { set; get; }
@@ -141,7 +145,7 @@ namespace WpfApp1
             public string Status { set; get; }
             public string PlateName { set; get; }
             public string Text { set; get; }
-            public Byte[] Img { set; get; }=null;
+            public Byte[] Img { set; get; }=null; //string
             public string Cat { get; set; }
             public int Blink { set; get; }
             public List<DatePie> PieList { set; get; } = null;
@@ -192,22 +196,134 @@ namespace WpfApp1
         void timer_Tick(object sender, EventArgs e)
         {
             bool b=false;
+            DrawingDelegate DrawDel = DrawGrid;
+            DataDelegate MainDel = GetDataTick;
+            Thread thread = new Thread(() => { Trep = MainDel(Logs, Trep, Time); });
+
             //Заполнение и обновление данных в Trep 
-            if (Time == 0)
-            {
-                for (int i = 0; i < Logs.Count; i++)
-                {
-                    avtoritiz(i);
-                    Task<List<ExName>> serp = Task.Run(() => GetClass(Logs[i].address));
-                    rep = serp.Result;
-                    countElement[i] = rep.Count;
-                    foreach (ExName ex in rep)
-                    {
-                        Trep.Add(ex.CreateTable());
-                    }
-                }
-            }
+            //if (Time == 0)
+            //{
+            //    for (int i = 0; i < Logs.Count; i++)
+            //    {
+            //        avtoritiz(i);
+            //        Task<List<ExName>> serp = Task.Run(() => GetClass(Logs[i].address));
+            //        rep = serp.Result;
+            //        countElement[i] = rep.Count;
+            //        foreach (ExName ex in rep)
+            //        {
+            //            Trep.Add(ex.CreateTable());
+            //        }
+            //    }
+            //}
             Time += 1;
+            thread.ApartmentState=ApartmentState.STA;
+            thread.Start();
+            
+            System.Windows.Application.Current.Dispatcher.Invoke((Action)(() =>
+                {
+                DrawDel?.Invoke();
+                }));
+
+            //Конец Заполнения и обновления
+
+
+
+
+
+
+            //dynamic obj = JsonConvert.DeserializeObject(json);
+            //var error = (string)obj.error;
+
+
+
+
+
+
+            //Задания объектов для проприсовки Круговой диаграммы 
+            //Dgrid.ItemsSource = Trep;
+            //GrChart.Children.OfType<Canvas>().ToList().ForEach(p => GrChart.Children.Remove(p));
+            //PieChart chart = null;
+            //chart = new PieChart();
+            //GrChart.Children.Add(chart.ChartBackground);
+            //GrChart.UpdateLayout();
+            //CreateChart(chart);
+            //Dgrid.Items.Refresh();
+        }
+
+        public void DrawGrid()
+        {
+           
+            int[] MandM = MinAndMaks(Trep);
+            Grid[] gr = new Grid[Trep.Count];
+            RowDefinition[] row = new RowDefinition[MandM[1] + 1];
+            ColumnDefinition[] Column = new ColumnDefinition[MandM[0] + 1];
+            for (int i = 0; i < MandM[0]; i++)
+            { Column[i] = new ColumnDefinition(); Column[i].Width = new GridLength(128); Grid_View.ColumnDefinitions.Add(Column[i]); }
+            for (int i = 0; i < MandM[1]; i++)
+            { row[i] = new RowDefinition(); row[i].Height = new GridLength(128); Grid_View.RowDefinitions.Add(row[i]); }
+            
+
+
+            //if (b)
+            //{
+                for (int i = 0; i < Trep.Count; i++)
+                {
+                    gr[i] = new Grid();
+                    Grid_View.Children.Add(gr[i]);
+                    Grid.SetColumn(gr[i], Trep[i].Cell_col);
+                    Grid.SetRow(gr[i], Trep[i].Cell_row);
+                    gr[i].Height = 128;
+                    gr[i].Width = 128;
+                
+                    switch (Trep[i].Cat)
+                    {
+                        case "Image":
+                            {
+                                TextBlock block = new TextBlock();
+                                block.Text = Trep[i].Status + "   " + Trep[i].Text;
+                            if (DicImage.ImageDict.ContainsKey("")) //вместо "" Пишем Trep[i].main
+                            block.Background = DicImage.ImageDict[""]; //вместо "" Пишем Trep[i].main
+                            else DicImage=new ImageDictionary();
+                                //block.Width = 128;
+                                //block.Height = 128;
+                                gr[i].Children.Add(block);
+
+                                break;
+                            }
+                        case "diagram":
+                            {
+
+                                Test[] d = new Test[Trep[i].PieList.Count];
+                                PieChart ch = new PieChart();
+                                string[] s = new string[4];
+                                double[] n = new double[3];
+                                for (int j = 0; j < Trep[i].PieList.Count; j++)
+                                {
+                                    d[j] = new Test();
+                                    s = Trep[i].PieList[j].HslColor.Split('(', ',', ')');
+                                    for (int k = 1; k < 4; k++) { n[k - 1] = Convert.ToDouble(s[k]); }
+                                    System.Drawing.Color cal = System.Drawing.Color.FromArgb(ColorHLSToRGB((int)n[0], (int)n[1], (int)n[2]));
+                                    d[j].color = Color.FromArgb(255, cal.R, cal.G, cal.B);
+                                    d[j].values = (double)Trep[i].PieList[j].Value;
+                                }
+                                CreateChart(ch, d);
+                                gr[i].Children.Add(ch.ChartBackground);
+
+                                break;
+                            }
+
+                    }
+                gr[i].UpdateLayout();
+                }
+            //b = false;
+            //}
+            Grid_View.UpdateLayout();
+        }
+
+
+        public List<Table> GetDataTick(List<LogIn> Logs, List<Table> Trep, int Time)
+        {
+            List<ExName> rep=new List<ExName>();
             int summcount = 0;
             int rz = 0;
             for (int i = 0; i < Logs.Count; i++)
@@ -251,91 +367,12 @@ namespace WpfApp1
                         }
                     }
                     summcount += countElement[i];
-                    b = true;
+                    //b = true;
                 }
             }
-            //Конец Заполнения и обновления
-
-
-            int[] MandM = MinAndMaks(Trep);
-            Grid[] gr=new Grid[Trep.Count];
-            RowDefinition[] row=new RowDefinition[MandM[1]+1];
-            ColumnDefinition[] Column = new ColumnDefinition[MandM[0]+1];
-            for (int i = 0; i < MandM[0]; i++) 
-            { Column[i] = new ColumnDefinition(); Column[i].Width = new GridLength(128); Grid_View.ColumnDefinitions.Add(Column[i]); }
-            for (int i=0; i< MandM[1]; i++) 
-            { row[i] = new RowDefinition(); row[i].Height = new GridLength(128); Grid_View.RowDefinitions.Add(row[i]); }
-
-            if (b)
-            {
-                for (int i = 0; i < Trep.Count; i++)
-                {
-                    gr[i] = new Grid();
-                    Grid_View.Children.Add(gr[i]);
-                    Grid.SetColumn(gr[i], Trep[i].Cell_col);
-                    Grid.SetRow(gr[i], Trep[i].Cell_row);
-                    gr[i].Height = 128;
-                    gr[i].Width = 128;
-
-                    switch (Trep[i].Cat)
-                    {
-                        case "Image":
-                            {
-                                TextBlock block = new TextBlock();
-                                block.Text = Trep[i].Status + "   " + Trep[i].Text;
-                                block.Background = Trep[i].main;
-                                block.Width = 128;
-                                block.Height = 128;
-                                gr[i].Children.Add(block);
-                                gr[i].UpdateLayout();
-                                break;
-                            }
-                        case "diagram":
-                            {
-
-                                Test[] d = new Test[Trep[i].PieList.Count];
-                                PieChart ch = new PieChart();
-                                string[] s = new string[4];
-                                double[] n= new double[3];
-                                for (int j = 0; j < Trep[i].PieList.Count; j++)
-                                {
-                                    d[j]=new Test();
-                                    s = Trep[i].PieList[j].HslColor.Split('(', ',', ')');
-                                    for (int k=1; k < 4; k++) { n[k - 1] = Convert.ToDouble(s[k]); }
-                                    System.Drawing.Color cal = System.Drawing.Color.FromArgb(ColorHLSToRGB((int)n[0], (int)n[1], (int)n[2]));
-                                    d[j].color = Color.FromArgb(255,cal.R,cal.G,cal.B);
-                                    d[j].values = (double)Trep[i].PieList[j].Value;
-                                }
-                                CreateChart(ch, d);
-                                gr[i].Children.Add(ch.ChartBackground);
-                                gr[i].UpdateLayout();
-                                break;
-                            }
-                    }
-                }
-                b = false;
-            }
-            Grid_View.UpdateLayout();
-
-
-           
-
-
-
-
-
-
-
-            //Задания объектов для проприсовки Круговой диаграммы 
-            //Dgrid.ItemsSource = Trep;
-            //GrChart.Children.OfType<Canvas>().ToList().ForEach(p => GrChart.Children.Remove(p));
-            //PieChart chart = null;
-            //chart = new PieChart();
-            //GrChart.Children.Add(chart.ChartBackground);
-            //GrChart.UpdateLayout();
-            //CreateChart(chart);
-            //Dgrid.Items.Refresh();
+            return Trep;
         }
+
 
         static Image ByteArrToImage(Byte[] byteArr)
         {
