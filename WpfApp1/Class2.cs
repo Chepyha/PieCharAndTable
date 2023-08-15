@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WpfApp1
 {
-    internal class Test
+    public class Test
     {
         public double values { get; set; }
         public Color color { get; set; } = new Color();
